@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dynamic Charts – Homework</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   CẤU HÌNH: dán link Web App (Google Apps Script) vào đây
+   để kết quả tự gửi về Google Sheet. Để trống = không gửi.
+   ========================================================= */
+</style>
+<script>const SHEET_URL = "https://script.google.com/macros/s/AKfycbxbm0IAX3ZgDVaSUu1mogVlgbEJ_3x5gJw8JqOtl4DHT4GbjRn2l4r3nsKdqYVt_KqEqg/exec";</script>
+<style>
+:root{
+  --navy:#1f2a56; --ink:#1f2a56; --muted:#6b7394; --line:#e6e1d6; --bg:#f6f4ef; --paper:#fff;
+  --teal:#13a89e; --teal-soft:#e6f6f4; --red:#d71a3a; --red-soft:#fdecef; --sun:#ffb81c; --sun-soft:#fff6dc;
+  --japan:#13a89e; --us:#7a5cff; --china:#d71a3a; --india:#ff9f1c;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Be Vietnam Pro',system-ui,-apple-system,sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+button{font-family:inherit}
+.hide{display:none!important}
+
+/* ---------- header ---------- */
+header{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;display:flex;align-items:center;gap:18px;padding:0 24px;height:60px}
+.brand{font-weight:800;font-size:17px;letter-spacing:.2px;white-space:nowrap}
+.brand span{color:var(--sun)}
+.tabs{display:flex;gap:6px;margin-left:12px}
+.tab{background:transparent;border:0;color:#c9cff0;font-weight:600;font-size:15px;padding:8px 16px;border-radius:99px;cursor:pointer}
+.tab.on{background:#fff;color:var(--navy)}
+.tab .ok{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--teal);margin-left:8px;vertical-align:middle;opacity:0}
+.tab.done .ok{opacity:1}
+.who{margin-left:auto;font-size:14px;color:#c9cff0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who b{color:#fff}
+.snd{background:rgba(255,255,255,.1);border:0;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;display:grid;place-items:center}
+.snd svg{width:18px;height:18px}
+
+main{max-width:1180px;margin:0 auto;padding:28px 24px 48px}
+
+/* ---------- common ---------- */
+.eyebrow{font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--teal)}
+h1{font-size:28px;margin:6px 0 6px;font-weight:800}
+.lead{color:var(--muted);margin:0;font-size:15.5px;line-height:1.6}
+.btn{border:0;border-radius:12px;padding:12px 22px;font-weight:700;font-size:15px;cursor:pointer;background:var(--navy);color:#fff;transition:transform .1s,opacity .2s}
+.btn:active{transform:translateY(1px)}
+.btn.teal{background:var(--teal)}
+.btn.ghost{background:#fff;color:var(--navy);border:1.5px solid var(--line)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* ---------- start screen ---------- */
+#start{position:fixed;inset:0;z-index:50;background:var(--bg);display:grid;place-items:center;padding:20px}
+.start-card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:36px 36px 30px;max-width:460px;width:100%;box-shadow:0 20px 50px rgba(31,42,86,.08)}
+.start-card h1{font-size:26px}
+.field{margin-top:16px}
+.field label{display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px}
+.field input{width:100%;font:inherit;font-size:16px;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;outline:none}
+.field input:focus{border-color:var(--teal)}
+.start-list{margin:18px 0 0;padding:0;list-style:none;font-size:14.5px;color:var(--muted)}
+.start-list li{display:flex;gap:10px;align-items:flex-start;margin:8px 0}
+.start-list i{flex:none;width:22px;height:22px;border-radius:7px;background:var(--teal-soft);color:var(--teal);font-style:normal;font-weight:800;font-size:12px;display:grid;place-items:center}
+
+/* ---------- exercise 1 ---------- */
+.ex1-top{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:20px}
+.stats{margin-left:auto;display:flex;gap:10px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:8px 16px;min-width:92px;text-align:center}
+.stat small{display:block;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
+.stat b{font-size:20px;font-variant-numeric:tabular-nums}
+.progress{height:6px;background:#ebe6da;border-radius:99px;overflow:hidden;margin-bottom:20px}
+.progress i{display:block;height:100%;width:0;background:var(--teal);border-radius:99px;transition:width .4s}
+.round-label{font-size:14px;font-weight:700;color:var(--muted);margin:0 0 10px}
+.round-label b{color:var(--navy)}
+
+.board{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.tile{position:relative;aspect-ratio:4/3;background:#fff;border:1.5px solid var(--line);border-radius:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;
+  box-shadow:0 2px 0 rgba(31,42,86,.05);transition:transform .15s,border-color .15s,box-shadow .15s,opacity .35s;user-select:none;-webkit-user-select:none}
+.tile:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(31,42,86,.08)}
+.tile.word{font-size:19px;font-weight:700}
+.tile.mean{font-size:16px;font-weight:500;color:#3c4670;line-height:1.4;background:#fbfaf6}
+.tile svg{width:86%;height:86%}
+.tile.sel{border-color:var(--sun);box-shadow:0 0 0 4px rgba(255,184,28,.3)}
+.tile.wrong{border-color:var(--red);background:var(--red-soft);animation:shake .38s}
+.tile.right{border-color:var(--teal);background:var(--teal-soft)}
+.tile.gone{opacity:0;transform:scale(.85);pointer-events:none;visibility:hidden;transition:opacity .35s,transform .35s,visibility 0s .35s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%,75%{transform:translateX(-6px)}50%{transform:translateX(6px)}}
+
+.done-box{background:#fff;border:1px solid var(--line);border-radius:20px;padding:40px;text-align:center;max-width:560px;margin:30px auto 0}
+.done-box svg{width:120px;height:120px}
+.done-box h2{margin:10px 0 6px;font-size:26px}
+.done-box p{color:var(--muted);margin:0 0 20px}
+.done-box .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+/* ---------- exercise 2 (IELTS style) ---------- */
+#ex2{max-width:none;padding:0}
+.exam-bar{display:flex;align-items:center;gap:16px;background:#fff;border-bottom:1px solid var(--line);padding:10px 24px}
+.exam-bar .part{font-weight:800}
+.exam-bar .part small{display:block;font-weight:500;color:var(--muted);font-size:13px}
+.clock{margin-left:auto;display:flex;align-items:center;gap:8px;font-weight:700;font-variant-numeric:tabular-nums;font-size:17px;background:var(--bg);border-radius:99px;padding:7px 14px}
+.clock svg{width:18px;height:18px}
+.clock.low{color:var(--red)}
+.split{display:flex;height:calc(100vh - 60px - 61px - 64px);min-height:460px}
+.pane{overflow:auto;background:#fff}
+.pane.left{flex:0 0 50%;padding:24px 28px;border-right:1px solid var(--line)}
+.resizer{flex:none;width:12px;cursor:col-resize;background:var(--bg);display:grid;place-items:center;border-right:1px solid var(--line)}
+.resizer::after{content:"";width:4px;height:40px;border-radius:9px;background:#cfc8b8}
+.pane.right{flex:1;display:flex;flex-direction:column;padding:0}
+.task-box{border:1.5px solid var(--line);border-radius:12px;padding:16px 18px;font-size:16px;line-height:1.6;margin-bottom:18px;background:#fcfbf8}
+.task-box p{margin:0 0 10px}
+.task-box p:last-child{margin:0}
+.chart-wrap{border:1px solid var(--line);border-radius:12px;padding:10px;user-select:none;-webkit-user-select:none}
+.chart-wrap svg{display:block;width:100%;height:auto}
+.left .note{font-size:14px;color:var(--muted);margin-top:14px;line-height:1.6}
+textarea#essay{flex:1;width:100%;border:0;resize:none;outline:none;padding:24px 28px;font-family:Arial,Helvetica,sans-serif;font-size:16.5px;line-height:1.75;color:#111}
+.wc-bar{display:flex;align-items:center;gap:14px;border-top:1px solid var(--line);padding:10px 24px;font-size:14px;color:var(--muted)}
+.wc-bar b{color:var(--navy);font-size:16px;font-variant-numeric:tabular-nums}
+.wc-meter{flex:1;max-width:220px;height:6px;background:#ebe6da;border-radius:99px;overflow:hidden}
+.wc-meter i{display:block;height:100%;width:0;background:var(--sun);transition:width .3s,background .3s}
+.wc-meter i.ok{background:var(--teal)}
+.saved{margin-left:auto;font-size:13px}
+.exam-foot{display:flex;align-items:center;gap:12px;height:64px;padding:0 24px;background:#fff;border-top:1px solid var(--line)}
+.exam-foot .hint{font-size:13.5px;color:var(--muted)}
+.exam-foot .btn{margin-left:auto}
+
+/* ---------- toast & modal ---------- */
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:12px 20px;border-radius:12px;font-size:14.5px;font-weight:600;opacity:0;pointer-events:none;transition:all .3s;z-index:60;max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%)}
+#modal{position:fixed;inset:0;z-index:70;background:rgba(31,42,86,.45);display:grid;place-items:center;padding:20px}
+.modal-card{background:#fff;border-radius:20px;max-width:480px;width:100%;padding:30px;box-shadow:0 30px 60px rgba(0,0,0,.2)}
+.modal-card h2{margin:0 0 8px;font-size:22px}
+.modal-card p{color:var(--muted);line-height:1.6;margin:0 0 14px}
+.sumrow{display:flex;justify-content:space-between;border-top:1px solid var(--line);padding:10px 0;font-size:15px}
+.sumrow b{font-variant-numeric:tabular-nums}
+.modal-card .row{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+
+@media (max-width:860px){
+  header{padding:0 14px;gap:10px}.brand{font-size:15px}.who{display:none}
+  .tab{padding:7px 12px;font-size:14px}
+  .board{grid-template-columns:repeat(3,1fr);gap:10px}
+  .tile.word{font-size:16px}.tile.mean{font-size:13.5px}
+  .stats{margin-left:0}
+  .split{flex-direction:column;height:auto}
+  .pane.left{flex:none;border-right:0;border-bottom:1px solid var(--line)}
+  .resizer{display:none}
+  textarea#essay{min-height:60vh}
+}
+@media (max-width:520px){.board{grid-template-columns:repeat(2,1fr)}main{padding:20px 14px 40px}}
+</style>
+</head>
+<body>
+
+<!-- ============ START ============ -->
+<div id="start">
+  <div class="start-card">
+    <div class="eyebrow">IELTS Writing Task 1 · Homework</div>
+    <h1>Dynamic Charts</h1>
+    <p class="lead">Bài tập về nhà sau buổi học về biểu đồ có sự thay đổi theo thời gian.</p>
+    <div class="field"><label for="inName">Họ và tên</label><input id="inName" autocomplete="off" placeholder="VD: Nguyễn Minh Anh"></div>
+    <div class="field"><label for="inClass">Lớp</label><input id="inClass" autocomplete="off" placeholder="VD: 10A1"></div>
+    <ul class="start-list">
+      <li><i>1</i><span><b>Bài 1:</b> nối từ với hình minh hoạ hoặc nghĩa (2 vòng). Chọn đúng cặp thì cặp đó biến mất.</span></li>
+      <li><i>2</i><span><b>Bài 2:</b> viết bài hoàn chỉnh về Australian exports (tối thiểu 150 từ, 20 phút). Không dùng được copy – paste.</span></li>
+    </ul>
+    <button class="btn teal" id="bStart" style="width:100%;margin-top:22px">Bắt đầu làm bài</button>
+  </div>
+</div>
+
+<header>
+  <div class="brand">Dynamic Charts <span>·</span> Homework</div>
+  <nav class="tabs">
+    <button class="tab on" data-tab="ex1">Bài 1<span class="ok"></span></button>
+    <button class="tab" data-tab="ex2">Bài 2<span class="ok"></span></button>
+  </nav>
+  <div class="who" id="who"></div>
+  <button class="snd" id="bSnd" title="Bật / tắt âm thanh"></button>
+</header>
+
+<!-- ============ EXERCISE 1 ============ -->
+<main id="ex1">
+  <div class="ex1-top">
+    <div>
+      <div class="eyebrow">Bài 1 · Vocabulary</div>
+      <h1>Match the words</h1>
+      <p class="lead">Chọn một ô từ, rồi chọn ô hình minh hoạ hoặc nghĩa tương ứng.</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><small>Còn lại</small><b id="sLeft">0</b></div>
+      <div class="stat"><small>Lỗi sai</small><b id="sErr">0</b></div>
+      <div class="stat"><small>Thời gian</small><b id="sTime">0:00</b></div>
+    </div>
+  </div>
+  <div class="progress"><i id="prog"></i></div>
+  <p class="round-label" id="roundLabel"></p>
+  <div class="board" id="board"></div>
+  <div class="done-box hide" id="ex1Done"></div>
+</main>
+
+<!-- ============ EXERCISE 2 ============ -->
+<section id="ex2" class="hide">
+  <div class="exam-bar">
+    <div class="part">Part 1<small>Bài 2 · Writing Task 1 — Australian exports</small></div>
+    <div class="clock" id="clock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="clockT">20:00</span></div>
+  </div>
+  <div class="split" id="split">
+    <div class="pane left" id="paneL">
+      <div class="task-box">
+        <p><b>You should spend about 20 minutes on this task.</b></p>
+        <p>The graph below shows the percentage of Australian exports to 4 countries from 1990 to 2012.</p>
+        <p>Summarise the information by selecting and reporting the main features, and make comparisons where relevant.</p>
+        <p><b>Write at least 150 words.</b></p>
+      </div>
+      <div class="chart-wrap" id="chart"></div>
+      <p class="note">Gợi ý cấu trúc: Introduction (What – Where – When) → Overview (Trend + Difference, không số liệu) → Body 1 → Body 2 (chia 2 nhóm logic, từ lớn đến bé, có câu layering).</p>
+    </div>
+    <div class="resizer" id="resizer" title="Kéo để đổi độ rộng"></div>
+    <div class="pane right">
+      <textarea id="essay" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="sentences" placeholder="Con viết bài ở đây..."></textarea>
+      <div class="wc-bar">Words: <b id="wc">0</b><div class="wc-meter"><i id="wcm"></i></div><span id="wcNote">tối thiểu 150</span><span class="saved" id="saved"></span></div>
+    </div>
+  </div>
+  <div class="exam-foot">
+    <span class="hint">Bài viết tự lưu trên máy này. Không thể dán (paste) nội dung từ nơi khác.</span>
+    <button class="btn teal" id="bSubmit">Nộp bài</button>
+  </div>
+</section>
+
+<div id="toast"></div>
+<div id="modal" class="hide"><div class="modal-card" id="modalCard"></div></div>
+
+<script>
+/* ================= STATE ================= */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const ST={name:'',cls:'',ex1:{done:false,errors:0,seconds:0},ex2:{pasteBlocked:0,tabLeaves:0,started:null}};
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2600);}
+const fmt=s=>{const a=Math.abs(s);return (s<0?'+':'')+Math.floor(a/60)+':'+String(a%60).padStart(2,'0');};
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
+
+/* ================= SOUND ================= */
+let AC=null, MUTED=false;
+function ac(){if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC;}
+function tone(f,d,type='sine',v=.15,w=0){if(MUTED)return;const c=ac(),t=c.currentTime+w,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(f,t);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(c.destination);o.start(t);o.stop(t+d+.05);}
+const SFX={
+  pick(){tone(620,.06,'triangle',.07)},
+  ting(){tone(1318,.35,'sine',.16);tone(1976,.5,'sine',.08,.05)},
+  wrong(){tone(220,.18,'square',.05);tone(165,.24,'square',.045,.09)},
+  win(){[523,659,784,1047,1319].forEach((f,i)=>tone(f,.22,'triangle',.11,i*.11));tone(1568,.7,'sine',.1,.6)},
+  block(){tone(300,.12,'triangle',.08)}
+};
+const ICON_ON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/></svg>';
+const ICON_OFF='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
+$('#bSnd').innerHTML=ICON_ON;
+$('#bSnd').onclick=()=>{MUTED=!MUTED;$('#bSnd').innerHTML=MUTED?ICON_OFF:ICON_ON;};
+
+/* ================= START ================= */
+$('#inName').value=store.get('dc_name')||''; $('#inClass').value=store.get('dc_class')||'';
+$('#bStart').onclick=()=>{
+  const n=$('#inName').value.trim(), c=$('#inClass').value.trim();
+  if(!n){$('#inName').focus();toast('Con nhập họ tên trước nhé.');return;}
+  ST.name=n;ST.cls=c;store.set('dc_name',n);store.set('dc_class',c);
+  $('#who').innerHTML=`<b>${n.replace(/</g,'&lt;')}</b>${c?' · '+c.replace(/</g,'&lt;'):''}`;
+  $('#start').remove(); ac(); startEx1();
+};
+$('#inClass').addEventListener('keydown',e=>{if(e.key==='Enter')$('#bStart').click();});
+
+/* ================= TABS ================= */
+function showTab(t){
+  $$('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  $('#ex1').classList.toggle('hide',t!=='ex1'); $('#ex2').classList.toggle('hide',t!=='ex2');
+  if(t==='ex2') startEx2();
+}
+$$('.tab').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+
+/* ================= EXERCISE 1 DATA ================= */
+const G=(d,dot)=>`<svg viewBox="0 0 120 80"><line x1="8" y1="72" x2="114" y2="72" stroke="#cfc8b8" stroke-width="2"/><line x1="8" y1="6" x2="8" y2="72" stroke="#cfc8b8" stroke-width="2"/>
+<path d="${d}" fill="none" stroke="#1f2a56" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>${dot?`<circle cx="${dot[0]}" cy="${dot[1]}" r="6" fill="#ffb81c" stroke="#1f2a56" stroke-width="2"/>`:''}</svg>`;
+const ROUNDS=[
+ {title:'Vòng 1 / 2 — Nối động từ xu hướng với biểu đồ', pairs:[
+  ['increase gradually', G('M12 62 L42 54 L72 46 L110 34')],
+  ['surge',              G('M12 64 L58 60 L76 18 L110 12')],
+  ['decline gradually',  G('M12 26 L42 36 L72 46 L110 56')],
+  ['plummet',            G('M12 14 L56 18 L74 64 L110 66')],
+  ['remain stable',      G('M12 40 L110 40')],
+  ['fluctuate',          G('M12 44 L26 26 L40 52 L54 24 L68 52 L82 28 L96 50 L110 40')],
+  ['reach a peak',       G('M12 62 L44 42 L62 14 L82 40 L110 56',[62,14])],
+  ['recover',            G('M12 20 L40 34 L58 60 L80 40 L110 22')]
+ ]},
+ {title:'Vòng 2 / 2 — Nối từ với nghĩa tiếng Việt', pairs:[
+  ['considerable','đáng kể, khá lớn'],
+  ['marginal','rất nhỏ, không đáng kể'],
+  ['respectively','lần lượt (theo đúng thứ tự)'],
+  ['followed by','theo sau là, xếp sau là'],
+  ['whereas','trong khi đó (tương phản)'],
+  ['likewise','tương tự như vậy'],
+  ['the latter','cái sau (trong 2 cái vừa nêu)'],
+  ['destination','điểm đến (nơi hàng hoá được xuất tới)']
+ ]}
+];
+let R=0, left=0, sel=null, lock=false, t1=null;
+
+function startEx1(){R=0;ST.ex1.errors=0;ST.ex1.seconds=0;$('#sErr').textContent=0;
+  clearInterval(t1);t1=setInterval(()=>{ST.ex1.seconds++;$('#sTime').textContent=fmt(ST.ex1.seconds);},1000);
+  $('#ex1Done').classList.add('hide');buildRound();}
+function buildRound(){
+  const r=ROUNDS[R]; $('#roundLabel').innerHTML=`<b>${r.title}</b>`;
+  const tiles=[]; r.pairs.forEach(([w,m],i)=>{tiles.push({id:i,kind:'word',html:w});tiles.push({id:i,kind:m.startsWith('<svg')?'pic':'mean',html:m});});
+  const b=$('#board'); b.classList.remove('hide');
+  b.innerHTML=shuffle(tiles).map(t=>`<div class="tile ${t.kind}" data-id="${t.id}" data-kind="${t.kind==='word'?'w':'m'}">${t.html}</div>`).join('');
+  left=r.pairs.length; sel=null; updStats();
+}
+function updStats(){
+  const total=ROUNDS.reduce((a,r)=>a+r.pairs.length,0), doneBefore=ROUNDS.slice(0,R).reduce((a,r)=>a+r.pairs.length,0);
+  $('#sLeft').textContent=left; $('#prog').style.width=((doneBefore+ROUNDS[R].pairs.length-left)/total*100)+'%';
+}
+$('#board').addEventListener('click',e=>{
+  const t=e.target.closest('.tile'); if(!t||lock||t.classList.contains('gone'))return;
+  if(!sel){sel=t;t.classList.add('sel');SFX.pick();return;}
+  if(t===sel){t.classList.remove('sel');sel=null;return;}
+  if(t.dataset.kind===sel.dataset.kind){sel.classList.remove('sel');sel=t;t.classList.add('sel');SFX.pick();return;}
+  const a=sel,b=t; sel=null; a.classList.remove('sel');
+  if(a.dataset.id===b.dataset.id){
+    SFX.ting(); a.classList.add('right'); b.classList.add('right');
+    setTimeout(()=>{a.classList.add('gone');b.classList.add('gone');},280);
+    left--; updStats();
+    if(left===0){lock=true;setTimeout(()=>{lock=false;roundDone();},700);}
+  }else{
+    SFX.wrong(); ST.ex1.errors++; $('#sErr').textContent=ST.ex1.errors;
+    a.classList.add('wrong'); b.classList.add('wrong'); lock=true;
+    setTimeout(()=>{a.classList.remove('wrong');b.classList.remove('wrong');lock=false;},450);
+  }
+});
+const TROPHY=`<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="56" fill="#e6f6f4"/><path d="M38 30h44v16a22 22 0 0 1-44 0z" fill="#ffb81c" stroke="#1f2a56" stroke-width="3"/>
+<path d="M38 36H26a12 12 0 0 0 14 16M82 36h12a12 12 0 0 1-14 16" fill="none" stroke="#1f2a56" stroke-width="3"/><rect x="54" y="66" width="12" height="14" fill="#ffb81c" stroke="#1f2a56" stroke-width="3"/>
+<rect x="42" y="80" width="36" height="10" rx="3" fill="#1f2a56"/><path d="M52 44l6 6 12-12" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+function roundDone(){
+  $('#board').classList.add('hide'); const d=$('#ex1Done'); d.classList.remove('hide');
+  if(R<ROUNDS.length-1){
+    d.innerHTML=`${TROPHY}<h2>Hoàn thành vòng ${R+1}</h2><p>Con đã nối đúng hết các cặp. Sang vòng tiếp theo nhé.</p><div class="row"><button class="btn teal" id="bNextR">Vòng ${R+2}</button></div>`;
+    SFX.ting(); $('#bNextR').onclick=()=>{R++;d.classList.add('hide');buildRound();};
+  }else{
+    clearInterval(t1); ST.ex1.done=true; $('.tab[data-tab=ex1]').classList.add('done'); SFX.win();
+    d.innerHTML=`${TROPHY}<h2>Hoàn thành Bài 1</h2><p>Thời gian: <b>${fmt(ST.ex1.seconds)}</b> · Số lần chọn sai: <b>${ST.ex1.errors}</b></p>
+    <div class="row"><button class="btn ghost" id="bAgain">Làm lại</button><button class="btn teal" id="bGo2">Sang Bài 2</button></div>`;
+    $('#bAgain').onclick=startEx1; $('#bGo2').onclick=()=>{showTab('ex2');window.scrollTo(0,0);};
+  }
+}
+
+/* ================= EXERCISE 2: CHART ================= */
+(function drawChart(){
+  const W=640,H=400,L=52,R=20,T=56,B=46,pw=W-L-R,ph=H-T-B, xs=[1990,1995,2000,2005,2010,2012], yMax=30;
+  const X=y=>L+16+(y-1990)/22*(pw-32), Y=v=>T+ph-v/yMax*ph;
+  const S=[['Japan',[26,20,19,19,17,17],'#13a89e','c'],['US',[11,8,11,8,5,7],'#7a5cff','s'],['China',[2,3,5,12.5,25,27],'#d71a3a','c'],['India',[1,1,1,5,7,5],'#ff9f1c','t']];
+  let s=`<svg viewBox="0 0 ${W} ${H}" font-family="Be Vietnam Pro, Arial, sans-serif"><text x="${W/2}" y="22" text-anchor="middle" font-size="16" font-weight="700" fill="#1f2a56">Australian exports to 4 countries, 1990–2012 (%)</text>`;
+  for(let v=0;v<=30;v+=5){s+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="${v?'#eee9df':'#9aa0b8'}" stroke-width="${v?1:1.6}"/><text x="${L-8}" y="${Y(v)+4}" text-anchor="end" font-size="12" fill="#6b7394">${v}%</text>`;}
+  xs.forEach(y=>s+=`<text x="${X(y)}" y="${T+ph+22}" text-anchor="middle" font-size="13" font-weight="600" fill="#1f2a56">${y}</text>`);
+  let lx=L; S.forEach(([n,,c])=>{s+=`<line x1="${lx}" x2="${lx+22}" y1="40" y2="40" stroke="${c}" stroke-width="3.5"/><text x="${lx+28}" y="44" font-size="13" font-weight="600" fill="#1f2a56">${n}</text>`;lx+=n.length*8+50;});
+  S.forEach(([n,d,c,m])=>{s+=`<path d="${d.map((v,i)=>(i?'L':'M')+X(xs[i])+' '+Y(v)).join(' ')}" fill="none" stroke="${c}" stroke-width="3" stroke-linejoin="round"/>`;
+    d.forEach((v,i)=>{const x=X(xs[i]),y=Y(v);s+=m==='s'?`<rect x="${x-4}" y="${y-4}" width="8" height="8" fill="${c}"/>`:m==='t'?`<path d="M${x} ${y-5}L${x+5} ${y+4}L${x-5} ${y+4}Z" fill="${c}"/>`:`<circle cx="${x}" cy="${y}" r="4" fill="#fff" stroke="${c}" stroke-width="2.4"/>`;});});
+  $('#chart').innerHTML=s+'</svg>';
+})();
+
+/* ================= EXERCISE 2: EDITOR ================= */
+const ess=$('#essay'), KEY=()=>'dc_essay_'+ST.name;
+let t2=null, timeLeft=20*60;
+function countWords(t){return (t.match(/[A-Za-zÀ-ỹ0-9]+(?:['’\-.,][A-Za-zÀ-ỹ0-9]+)*/g)||[]).length;}
+function updWC(){const n=countWords(ess.value);$('#wc').textContent=n;const m=$('#wcm');m.style.width=Math.min(100,n/150*100)+'%';m.classList.toggle('ok',n>=150);
+  $('#wcNote').textContent=n>=150?'đã đủ 150 từ':'còn thiếu '+(150-n)+' từ';}
+function startEx2(){
+  if(ST.ex2.started)return; ST.ex2.started=Date.now();
+  const saved=store.get(KEY()); if(saved){ess.value=saved;toast('Đã mở lại bài con viết dở.');}
+  const tl=+store.get(KEY()+'_t'); if(tl||tl===0) timeLeft=tl;
+  updWC(); tick();
+  t2=setInterval(()=>{timeLeft--;tick();if(timeLeft%5===0)store.set(KEY()+'_t',timeLeft);if(timeLeft===0){SFX.wrong();toast('Hết 20 phút. Con hoàn thành nhanh và nộp bài nhé.');}},1000);
+  setTimeout(()=>ess.focus(),100);
+}
+function tick(){$('#clockT').textContent=timeLeft>=0?fmt(timeLeft):'Quá giờ '+fmt(-timeLeft).slice(1);$('#clock').classList.toggle('low',timeLeft<=120);}
+let saveH=null;
+ess.addEventListener('input',()=>{updWC();clearTimeout(saveH);$('#saved').textContent='';saveH=setTimeout(()=>{store.set(KEY(),ess.value);$('#saved').textContent='Đã lưu';},600);});
+
+/* ---- chặn copy / paste / kéo thả ---- */
+function blocked(e,msg){e.preventDefault();ST.ex2.pasteBlocked++;SFX.block();toast(msg||'Không dán được. Con hãy tự gõ bài của mình.');}
+['paste','drop'].forEach(ev=>ess.addEventListener(ev,e=>blocked(e)));
+ess.addEventListener('beforeinput',e=>{if(e.inputType==='insertFromPaste'||e.inputType==='insertFromDrop'||e.inputType==='insertFromPasteAsQuotation')blocked(e);});
+['copy','cut'].forEach(ev=>document.addEventListener(ev,e=>{if(!$('#ex2').classList.contains('hide')){e.preventDefault();toast('Không dùng copy trong bài thi.');}}));
+document.addEventListener('contextmenu',e=>{if(e.target.closest('#ex2'))e.preventDefault();});
+document.addEventListener('dragstart',e=>{if(e.target.closest('#ex2'))e.preventDefault();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&ST.ex2.started&&!$('#ex2').classList.contains('hide'))ST.ex2.tabLeaves++;});
+
+/* ---- kéo đổi độ rộng 2 cửa sổ ---- */
+(function(){const rz=$('#resizer'),pl=$('#paneL'),sp=$('#split');let on=false;
+  rz.addEventListener('pointerdown',e=>{on=true;rz.setPointerCapture(e.pointerId);});
+  rz.addEventListener('pointermove',e=>{if(!on)return;const r=sp.getBoundingClientRect();const p=Math.min(70,Math.max(28,(e.clientX-r.left)/r.width*100));pl.style.flex='0 0 '+p+'%';});
+  rz.addEventListener('pointerup',()=>on=false);})();
+
+/* ================= SUBMIT ================= */
+function modal(html){$('#modalCard').innerHTML=html;$('#modal').classList.remove('hide');}
+function closeModal(){$('#modal').classList.add('hide');}
+$('#bSubmit').onclick=()=>{
+  const n=countWords(ess.value);
+  if(n<20){toast('Bài viết còn quá ngắn để nộp.');return;}
+  modal(`<h2>Nộp bài?</h2><p>${n<150?`Bài của con mới có <b>${n} từ</b> (yêu cầu tối thiểu 150 từ). Con vẫn muốn nộp?`:`Bài của con có <b>${n} từ</b>. Sau khi nộp sẽ không sửa được nữa.`}</p>
+  <div class="row"><button class="btn ghost" id="mNo">Viết tiếp</button><button class="btn teal" id="mYes">Nộp bài</button></div>`);
+  $('#mNo').onclick=closeModal; $('#mYes').onclick=submit;
+};
+async function submit(){
+  clearInterval(t2); ess.readOnly=true; $('#bSubmit').disabled=true;
+  const n=countWords(ess.value), used=Math.round((Date.now()-ST.ex2.started)/1000);
+  const data={time:new Date().toLocaleString('vi-VN'),name:ST.name,class:ST.cls,task:'Dynamic Charts – Australian exports',
+    ex1_done:ST.ex1.done,ex1_errors:ST.ex1.errors,ex1_seconds:ST.ex1.seconds,
+    ex2_words:n,ex2_seconds:used,ex2_paste_blocked:ST.ex2.pasteBlocked,ex2_tab_leaves:ST.ex2.tabLeaves,essay:ess.value};
+  let sent=false;
+  if(SHEET_URL){try{await fetch(SHEET_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(data)});sent=true;}catch(e){sent=false;}}
+  store.set(KEY()+'_submitted','1'); $('.tab[data-tab=ex2]').classList.add('done'); SFX.win();
+  modal(`<h2>Đã nộp bài</h2><p>${SHEET_URL?(sent?'Bài làm đã được gửi cho thầy.':'Chưa gửi được (lỗi mạng). Con tải file bài làm và gửi cho thầy nhé.'):'Con tải file bài làm bên dưới và gửi cho thầy nhé.'}</p>
+   <div class="sumrow"><span>Bài 1 – thời gian / lỗi sai</span><b>${ST.ex1.done?fmt(ST.ex1.seconds)+' / '+ST.ex1.errors:'chưa hoàn thành'}</b></div>
+   <div class="sumrow"><span>Bài 2 – số từ</span><b>${n}</b></div>
+   <div class="sumrow"><span>Bài 2 – thời gian viết</span><b>${fmt(used)}</b></div>
+   <div class="row"><button class="btn ghost" id="mDl">Tải file bài làm</button><button class="btn teal" id="mOk">Đóng</button></div>`);
+  $('#mOk').onclick=closeModal;
+  $('#mDl').onclick=()=>{const txt=`${data.name} – ${data.class}\n${data.task}\n${data.time}\nBài 1: ${ST.ex1.done?`${fmt(ST.ex1.seconds)}, ${ST.ex1.errors} lỗi sai`:'chưa hoàn thành'}\nBài 2: ${n} từ, ${fmt(used)}\n\n${data.essay}`;
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain;charset=utf-8'}));a.download=`${data.name.replace(/\s+/g,'_')}_Australian_exports.txt`;a.click();};
+}
+</script>
+</body>
+</html>
